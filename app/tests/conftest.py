@@ -2,7 +2,7 @@ import pytest
 from ..db.database import client
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def test_urls_database():
     """
     Connect to the test databse.
