@@ -1,7 +1,7 @@
 from .schemas import Link
 
 
-def link_seriializer(obj: dict) -> Link:
+def link_serializer(obj: dict) -> Link:
     """
     Parse link data from database into Link model schema.
     """
