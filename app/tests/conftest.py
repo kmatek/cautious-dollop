@@ -1,5 +1,5 @@
 import pytest
-from ..db.database import client
+from db.database import client
 
 
 @pytest.fixture()

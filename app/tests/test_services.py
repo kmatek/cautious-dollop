@@ -1,7 +1,7 @@
 import pytest
 from bson.objectid import ObjectId
-from ..models.link_services import get_link, get_links, add_link
-from ..models.schemas import Link
+from models.link_services import get_link, get_links, add_link
+from models.schemas import Link
 
 
 def test_get_link(test_urls_database):
