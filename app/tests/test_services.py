@@ -13,11 +13,10 @@ def test_get_link(test_urls_database):
     data = Link(url='test_link', added_by='test_user')
     obj = collection.insert_one(data.dict())
     link_obj = get_link(obj.inserted_id, collection)
-    assert link_obj.url == data.url
-    assert link_obj.added_by == data.added_by
-    assert type(link_obj) is Link
-    assert type(link_obj.id) is ObjectId
-    assert link_obj.id
+    assert link_obj.get('url') == data.url
+    assert link_obj.get('added_by') == data.added_by
+    assert type(link_obj) is dict
+    assert type(link_obj.get('id')) is str
 
 
 def test_get_link_if_not_exists(test_urls_database):
@@ -46,11 +45,10 @@ def test_get_links(test_urls_database):
     assert type(links) is list
 
     for index, link in enumerate(links):
-        assert insert_data_dict[index].added_by == link.added_by
-        assert insert_data_dict[index].url == link.url
-        assert type(link) is Link
-        assert type(link.id) is ObjectId
-        assert link.id
+        assert insert_data_dict[index].added_by == link.get('added_by')
+        assert insert_data_dict[index].url == link.get('url')
+        assert type(link) is dict
+        assert type(link.get('id')) is str
 
 
 def test_get_links_if_empty(test_urls_database):
@@ -73,11 +71,10 @@ def test_add_link(test_urls_database):
     data = Link(url='test_link', added_by='test_user')
     link_obj = add_link(data, collection)
 
-    assert link_obj.url == data.url
-    assert link_obj.added_by == data.added_by
-    assert type(link_obj) is Link
-    assert type(link_obj.id) is ObjectId
-    assert link_obj.id
+    assert link_obj.get('url') == data.url
+    assert link_obj.get('added_by') == data.added_by
+    assert type(link_obj) is dict
+    assert type(link_obj.get('id')) is str
 
 
 def test_add_link_already_exists(test_urls_database):

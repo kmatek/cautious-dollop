@@ -3,17 +3,20 @@ from pymongo.collection import Collection
 from pydantic.error_wrappers import ValidationError
 from bson.objectid import ObjectId
 from .schemas import Link
-from .serializers import link_serializer
+from .serializers import link_endpoint_serializer
 
 
-def get_link(link_id: ObjectId, collection: Collection) -> Link | None:
+def get_link(link_id: str, collection: Collection) -> Link | None:
     """
     Return link object or None by given link id value.
     """
-    link_obj = collection.find_one({'_id': link_id})
+    # Convert given str id into ObjectId object
+    link_object_id = ObjectId(link_id)
+    # Get link_obj
+    link_obj = collection.find_one({'_id': link_object_id})
     # Parse data if link object exits
     try:
-        return link_serializer(link_obj)
+        return link_endpoint_serializer(link_obj)
     except ValidationError:
         raise ValueError('Link does not exists.')
 
@@ -24,7 +27,7 @@ def get_links(collection: Collection) -> typing.List[Link]:
     """
     links = collection.find()
     if links:
-        return list(map(lambda x: link_serializer(x), links))
+        return list(map(lambda x: link_endpoint_serializer(x), links))
     return []
 
 
