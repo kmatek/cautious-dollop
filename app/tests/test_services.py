@@ -2,6 +2,7 @@ import pytest
 from bson.objectid import ObjectId
 from models.link_services import get_link, get_links, add_link
 from models.schemas import Link
+from bson import errors
 
 
 def test_get_link(test_urls_database):
@@ -17,6 +18,19 @@ def test_get_link(test_urls_database):
     assert link_obj.get('added_by') == data.added_by
     assert type(link_obj) is dict
     assert type(link_obj.get('id')) is str
+
+
+def test_get_link_with_invalid_id(test_urls_database):
+    """
+    Test get link with wrong id from database.
+    """
+    collection = test_urls_database
+    # Add link to the database
+    data = Link(url='test_link', added_by='test_user')
+    collection.insert_one(data.dict())
+    # Get data
+    with pytest.raises(errors.InvalidId):
+        get_link('invalid_id', collection)
 
 
 def test_get_link_if_not_exists(test_urls_database):
