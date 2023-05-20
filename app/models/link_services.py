@@ -4,10 +4,10 @@ from pydantic import error_wrappers
 from bson import errors
 from bson.objectid import ObjectId
 from .schemas import Link
-from .serializers import link_endpoint_serializer
+from .serializers import link_serializer
 
 
-def get_link(link_id: str, collection: Collection) -> Link | None:
+def get_link(link_id: str, collection: Collection) -> Link:
     """
     Return link object or None by given link id value.
     """
@@ -16,11 +16,11 @@ def get_link(link_id: str, collection: Collection) -> Link | None:
         link_object_id = ObjectId(link_id)
     except errors.InvalidId as e:
         raise e
-    # Get link_obj
+    # Get link object
     link_obj = collection.find_one({'_id': link_object_id})
     # Parse data if link object exits
     try:
-        return link_endpoint_serializer(link_obj)
+        return link_serializer(link_obj)
     except error_wrappers.ValidationError:
         raise ValueError('Link does not exists.')
 
@@ -31,7 +31,7 @@ def get_links(collection: Collection) -> typing.List[Link]:
     """
     links = collection.find()
     if links:
-        return list(map(lambda x: link_endpoint_serializer(x), links))
+        return list(map(lambda x: link_serializer(x), links))
     return []
 
 
