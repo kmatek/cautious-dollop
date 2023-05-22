@@ -14,11 +14,14 @@ class ObjectIdStr(str):
         return str(v)
 
 
-class Link(BaseModel):
-    id: Optional[ObjectIdStr] = Field(None, alias='_id')
+class LinkIn(BaseModel):
     url: str
-    date_added: datetime = Field(default_factory=datetime.utcnow)
     added_by: str
+
+
+class Link(LinkIn):
+    id: Optional[ObjectIdStr] = Field(None, alias='_id')
+    date_added: datetime = None
 
     class Config:
         arbitrary_types_allowed = True

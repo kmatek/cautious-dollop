@@ -1,4 +1,5 @@
 import typing
+from datetime import datetime
 from pymongo.collection import Collection
 from pydantic import error_wrappers
 from bson import errors
@@ -52,6 +53,9 @@ def add_link(data: Link, collection: Collection) -> Link:
     # Check that link already exists
     if check_that_link_exists(data.url, collection):
         raise ValueError('Link with given url already exists.')
-
-    obj = collection.insert_one(data.dict())
-    return get_link(obj.inserted_id, collection)
+    # Update data with date_added
+    payload = data.dict()
+    payload.update({'date_added': datetime.utcnow()})
+    # Insert data
+    obj = collection.insert_one(payload)
+    return get_link(str(obj.inserted_id), collection)
