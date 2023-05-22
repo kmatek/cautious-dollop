@@ -1,20 +1,28 @@
 import typing
+from datetime import datetime
 from pymongo.collection import Collection
-from pydantic.error_wrappers import ValidationError
+from pydantic import error_wrappers
+from bson import errors
 from bson.objectid import ObjectId
 from .schemas import Link
-from .serializers import link_seriializer
+from .serializers import link_serializer
 
 
-def get_link(link_id: ObjectId, collection: Collection) -> Link | None:
+def get_link(link_id: str, collection: Collection) -> Link:
     """
     Return link object or None by given link id value.
     """
-    link_obj = collection.find_one({'_id': link_id})
+    # Convert given str id into ObjectId object
+    try:
+        link_object_id = ObjectId(link_id)
+    except errors.InvalidId as e:
+        raise e
+    # Get link object
+    link_obj = collection.find_one({'_id': link_object_id})
     # Parse data if link object exits
     try:
-        return link_seriializer(link_obj)
-    except ValidationError:
+        return link_serializer(link_obj)
+    except error_wrappers.ValidationError:
         raise ValueError('Link does not exists.')
 
 
@@ -24,7 +32,7 @@ def get_links(collection: Collection) -> typing.List[Link]:
     """
     links = collection.find()
     if links:
-        return list(map(lambda x: link_seriializer(x), links))
+        return list(map(lambda x: link_serializer(x), links))
     return []
 
 
@@ -45,6 +53,9 @@ def add_link(data: Link, collection: Collection) -> Link:
     # Check that link already exists
     if check_that_link_exists(data.url, collection):
         raise ValueError('Link with given url already exists.')
-
-    obj = collection.insert_one(data.dict())
-    return get_link(obj.inserted_id, collection)
+    # Update data with date_added
+    payload = data.dict()
+    payload.update({'date_added': datetime.utcnow()})
+    # Insert data
+    obj = collection.insert_one(payload)
+    return get_link(str(obj.inserted_id), collection)

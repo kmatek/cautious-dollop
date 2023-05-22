@@ -1,7 +1,8 @@
 import pytest
 from bson.objectid import ObjectId
-from ..models.link_services import get_link, get_links, add_link
-from ..models.schemas import Link
+from models.link_services import get_link, get_links, add_link
+from models.schemas import Link
+from bson import errors
 
 
 def test_get_link(test_urls_database):
@@ -16,8 +17,20 @@ def test_get_link(test_urls_database):
     assert link_obj.url == data.url
     assert link_obj.added_by == data.added_by
     assert type(link_obj) is Link
-    assert type(link_obj.id) is ObjectId
-    assert link_obj.id
+    assert type(link_obj.id) is str
+
+
+def test_get_link_with_invalid_id(test_urls_database):
+    """
+    Test get link with wrong id from database.
+    """
+    collection = test_urls_database
+    # Add link to the database
+    data = Link(url='test_link', added_by='test_user')
+    collection.insert_one(data.dict())
+    # Get data
+    with pytest.raises(errors.InvalidId):
+        get_link('invalid_id', collection)
 
 
 def test_get_link_if_not_exists(test_urls_database):
@@ -44,13 +57,13 @@ def test_get_links(test_urls_database):
 
     links = get_links(collection)
     assert type(links) is list
+    assert type(links[0]) is Link
 
     for index, link in enumerate(links):
         assert insert_data_dict[index].added_by == link.added_by
         assert insert_data_dict[index].url == link.url
         assert type(link) is Link
-        assert type(link.id) is ObjectId
-        assert link.id
+        assert type(link.id) is str
 
 
 def test_get_links_if_empty(test_urls_database):
@@ -76,8 +89,7 @@ def test_add_link(test_urls_database):
     assert link_obj.url == data.url
     assert link_obj.added_by == data.added_by
     assert type(link_obj) is Link
-    assert type(link_obj.id) is ObjectId
-    assert link_obj.id
+    assert type(link_obj.id) is str
 
 
 def test_add_link_already_exists(test_urls_database):
