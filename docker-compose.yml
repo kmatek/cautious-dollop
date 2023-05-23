@@ -14,8 +14,8 @@ services:
 
   mongo:
     image: mongo
-    restart: always
+    restart: unless-stopped
+    container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: fastapi

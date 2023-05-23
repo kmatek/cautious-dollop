@@ -8,4 +8,6 @@ COPY ./app /app
 
 WORKDIR /app
 
+RUN apk add --no-cache gcc musl-dev libffi-dev
+
 RUN pip install --no-cache-dir --upgrade -r /tmp/requirements.txt

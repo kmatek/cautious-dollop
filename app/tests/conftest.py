@@ -18,6 +18,18 @@ def test_urls_database():
 
 
 @pytest.fixture()
+def test_user_database():
+    """
+    Connect to the test databse.
+    """
+    test_db = client.test_user_database
+
+    yield test_db.test_user_database
+    # Clean up
+    test_db.test_user_database.drop()
+
+
+@pytest.fixture()
 def test_client(test_urls_database):
     app.dependency_overrides[get_collection] = lambda: test_urls_database
     yield TestClient(app)

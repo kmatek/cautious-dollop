@@ -33,3 +33,18 @@ class Link(LinkIn):
                 "added_by": "Someone"
             }
         }
+
+
+class UserModel(BaseModel):
+    id: Optional[ObjectIdStr] = Field(None, alias='_id')
+    username: str
+    is_admin: bool = False
+    date_added: datetime = None
+    disabled: bool = False
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class DBUser(UserModel):
+    password: str
