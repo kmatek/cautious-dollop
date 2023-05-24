@@ -8,7 +8,7 @@ from models.link_services import (
     add_link,
     check_that_link_exists
 )
-from db.database import collection
+from db.database import link_collection
 from bson import errors
 
 router = APIRouter(
@@ -21,7 +21,7 @@ async def get_collection():
     """
     Return db collection.
     """
-    yield collection
+    yield link_collection
 
 
 @router.get("/", response_model=list[Link], status_code=status.HTTP_200_OK)
