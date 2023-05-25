@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 from bson import errors
 
 from .schemas import UserModel, DBUser
-from .serializers import user_serializer
+from .serializers import user_serializer, dbuser_serializer
 
 
 def get_hashed_password(password: str) -> str:
@@ -15,6 +15,13 @@ def get_hashed_password(password: str) -> str:
     Return hashed given password.
     """
     return pbkdf2_sha256.hash(password)
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """
+    Return True or False depens on password matching.
+    """
+    return pbkdf2_sha256.verify(password, hashed_password)
 
 
 def get_user(user_id: str, collection: Collection) -> UserModel:
@@ -35,6 +42,35 @@ def get_user(user_id: str, collection: Collection) -> UserModel:
         return user_serializer(user_obj)
     except error_wrappers.ValidationError:
         raise ValueError('User does not exists')
+
+
+def get_user_with_password(username: str, collection: Collection) -> DBUser:
+    """
+    Get user with hashed password from databse.
+    """
+    # Get user from database
+    user_obj = collection.find_one({'username': username})
+    # Parse data into UserModel
+    try:
+        return dbuser_serializer(user_obj)
+    except error_wrappers.ValidationError:
+        raise ValueError('User does not exists')
+
+
+def authenticate_user(collection: Collection, username: str, password: str) -> bool | DBUser:
+    """
+    Aunthenticate user with given username and password.
+    Return boolean or DBUser value.
+    """
+    # Get user
+    try:
+        user = get_user_with_password(username, collection)
+        # Verify password
+        if not verify_password(password, user.password):
+            return False
+        return user
+    except ValueError:
+        return False
 
 
 def create_user(data: DBUser, collection: Collection) -> UserModel:

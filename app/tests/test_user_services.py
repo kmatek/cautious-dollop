@@ -4,7 +4,7 @@ from bson import errors
 from bson.objectid import ObjectId
 
 from models.schemas import DBUser
-from models.user_services import get_hashed_password, get_user, create_user
+from models.user_services import get_hashed_password, get_user, create_user, verify_password, get_user_with_password, authenticate_user
 
 
 def test_get_hashed_password():
@@ -18,13 +18,24 @@ def test_get_hashed_password():
     assert pbkdf2_sha256.verify('wrong-password', hashed_password) is False
 
 
+def test_verify_password():
+    """
+    Test verify password method.
+    """
+    password = 'example-password'
+    hashed_password = get_hashed_password(password)
+
+    assert verify_password(password, hashed_password) is True
+    assert verify_password('wrong-passowrd', hashed_password) is False
+
+
 def test_get_user_that_not_exists(test_user_database):
     """
     Test get user that not exists from database.
     """
     collection = test_user_database
 
-    # Add link to the database
+    # Add user to the database
     data = DBUser(
         username='user1',
         password='password',
@@ -44,7 +55,7 @@ def test_get_user(test_user_database):
     """
     collection = test_user_database
 
-    # Add link to the database
+    # Add user to the database
     data = DBUser(
         username='user1',
         password='password',
@@ -63,6 +74,85 @@ def test_get_user(test_user_database):
 
     user_obj = collection.find_one({'_id': ObjectId(user_id)})
     assert pbkdf2_sha256.verify(data.password, user_obj.get('password')) is True
+
+
+def test_get_user_with_password(test_user_database):
+    """
+    Test get user data with password from database.
+    """
+    collection = test_user_database
+
+    # Add user to the database
+    data = DBUser(
+        username='user1',
+        password='password',
+    )
+    payload = data.dict()
+    payload.update({'password': get_hashed_password(data.password)})
+
+    collection.insert_one(payload)
+    # Get data
+    user_obj = get_user_with_password(data.username, collection)
+    assert user_obj.id
+    assert user_obj.username == data.username
+    assert user_obj.password
+    assert pbkdf2_sha256.verify(data.password, user_obj.password) is True
+
+
+def test_authenicate_user_method(test_user_database):
+    """
+    Test authenticate user method.
+    """
+    # Add user to the databse.
+    collection = test_user_database
+    data = DBUser(
+        username='user1',
+        password='password',
+    )
+    payload = data.dict()
+    payload.update({'password': get_hashed_password(data.password)})
+    collection.insert_one(payload)
+
+    obj = authenticate_user(collection, data.username, data.password)
+
+    assert type(obj) == DBUser
+    assert obj.username == data.username
+
+
+def test_authenicate_user_method_with_wront_username(test_user_database):
+    """
+    Test authenticate user method with fake data.
+    """
+    # Add user to the databse.
+    collection = test_user_database
+    data = DBUser(
+        username='user1',
+        password='password',
+    )
+    payload = data.dict()
+    payload.update({'password': get_hashed_password(data.password)})
+    collection.insert_one(payload)
+
+    obj = authenticate_user(collection, 'wrong username', data.password)
+    assert obj is False
+
+
+def test_authenicate_user_method_with_wront_password(test_user_database):
+    """
+    Test authenticate user method with fake data.
+    """
+    # Add user to the databse.
+    collection = test_user_database
+    data = DBUser(
+        username='user1',
+        password='password',
+    )
+    payload = data.dict()
+    payload.update({'password': get_hashed_password(data.password)})
+    collection.insert_one(payload)
+
+    obj = authenticate_user(collection, data.username, 'wrong-password')
+    assert obj is False
 
 
 def test_create_user(test_user_database):
