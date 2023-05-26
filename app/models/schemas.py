@@ -48,3 +48,16 @@ class UserModel(BaseModel):
 
 class DBUser(UserModel):
     password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "username": "string",
+                "password": "string"
+            }
+        }
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

@@ -51,7 +51,7 @@ def get_user_with_password(username: str, collection: Collection) -> DBUser:
     Get user with hashed password from databse.
     """
     # Get user from database
-    user_obj = collection.find_one({'username': username})
+    user_obj = collection.find_one({"username": username})
     # Parse data into UserModel
     try:
         return dbuser_serializer(user_obj)
@@ -75,17 +75,14 @@ def authenticate_user(collection: Collection, username: str, password: str) -> b
         return False
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict):
     """
     Create encoded access token.
     """
     # Copy given data
     to_encode = data.copy()
     # Set expire time
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     # Update dict
     to_encode.update({'exp': expire})
     # Create token

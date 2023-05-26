@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from db.database import client
 from app.main import app
 from routes.links import get_collection
+from routes.users import get_user_collection
 
 
 @pytest.fixture()
@@ -34,3 +35,10 @@ def test_client(test_urls_database):
     app.dependency_overrides[get_collection] = lambda: test_urls_database
     yield TestClient(app)
     app.dependency_overrides.pop(get_collection)  # Clean up the dependency override after tests
+
+
+@pytest.fixture()
+def test_user_client(test_user_database):
+    app.dependency_overrides[get_user_collection] = lambda: test_user_database
+    yield TestClient(app)
+    app.dependency_overrides.pop(get_user_collection)  # Clean up the dependency override after tests
