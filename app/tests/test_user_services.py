@@ -2,9 +2,19 @@ import pytest
 from passlib.hash import pbkdf2_sha256
 from bson import errors
 from bson.objectid import ObjectId
+import jwt
 
 from models.schemas import DBUser
-from models.user_services import get_hashed_password, get_user, create_user, verify_password, get_user_with_password, authenticate_user
+from models.user_services import (
+    get_hashed_password,
+    get_user,
+    create_user,
+    verify_password,
+    get_user_with_password,
+    authenticate_user,
+    create_access_token
+)
+from app.config import settings
 
 
 def test_get_hashed_password():
@@ -119,7 +129,7 @@ def test_authenicate_user_method(test_user_database):
     assert obj.username == data.username
 
 
-def test_authenicate_user_method_with_wront_username(test_user_database):
+def test_authenicate_user_method_with_wrong_username(test_user_database):
     """
     Test authenticate user method with fake data.
     """
@@ -137,7 +147,7 @@ def test_authenicate_user_method_with_wront_username(test_user_database):
     assert obj is False
 
 
-def test_authenicate_user_method_with_wront_password(test_user_database):
+def test_authenicate_user_method_with_wrong_password(test_user_database):
     """
     Test authenticate user method with fake data.
     """
@@ -153,6 +163,17 @@ def test_authenicate_user_method_with_wront_password(test_user_database):
 
     obj = authenticate_user(collection, data.username, 'wrong-password')
     assert obj is False
+
+
+def test_create_access_token(test_user_database):
+    """
+    Test create access token.
+    """
+    payload = {'sub': 'someone'}
+    token = create_access_token(payload)
+    decoded_value = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    assert decoded_value.get('exp')
+    assert decoded_value.get('sub') == payload.get('sub')
 
 
 def test_create_user(test_user_database):

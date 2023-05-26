@@ -1,13 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pymongo.collection import Collection
 from pydantic import error_wrappers
 from passlib.hash import pbkdf2_sha256
 from bson.objectid import ObjectId
 from bson import errors
+import jwt
 
 from .schemas import UserModel, DBUser
 from .serializers import user_serializer, dbuser_serializer
+from app.config import settings
 
 
 def get_hashed_password(password: str) -> str:
@@ -71,6 +73,24 @@ def authenticate_user(collection: Collection, username: str, password: str) -> b
         return user
     except ValueError:
         return False
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """
+    Create encoded access token.
+    """
+    # Copy given data
+    to_encode = data.copy()
+    # Set expire time
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # Update dict
+    to_encode.update({'exp': expire})
+    # Create token
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
 
 
 def create_user(data: DBUser, collection: Collection) -> UserModel:
