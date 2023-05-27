@@ -39,6 +39,33 @@ def test_get_token(test_user_client, test_user_database):
     assert 'token_type' in response.json()
 
 
+def test_get_token_not_allowed_methods(test_user_client, test_user_database):
+    """
+    Test get token not allowed methods.
+    """
+    # Add data
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password')
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    # Put
+    response = test_user_client.put(TOKEN_URL, data=payload)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_user_client.patch(TOKEN_URL, data=payload)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_user_client.delete(TOKEN_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Get
+    response = test_user_client.put(TOKEN_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 def test_create_new_user_not_token(test_user_client):
     """
     Test create user endpoint.
@@ -114,6 +141,55 @@ def test_create_new_user_admin(test_user_client, test_user_database):
     assert response.json().get('is_admin') is False
 
 
+def test_create_new_user_not_allowed_methods(test_user_client, test_user_database):
+    """
+    Test create new user endpoint not allowed methods.
+    """
+    # Create no admin user
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password', is_admin=True)
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+
+    payload = {
+        'username': 'someone',
+        'password': 'password'
+    }
+    # Put
+    response = test_user_client.put(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_user_client.patch(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Get
+    response = test_user_client.get(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_user_client.delete(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 def test_current_user(test_user_client, test_user_database):
     """
     Test get current user endpoint.
@@ -137,6 +213,45 @@ def test_current_user(test_user_client, test_user_database):
     assert response.status_code == 200
     assert 'password' not in response.json()
     assert response.json().get('username') == data.username
+
+
+def test_current_user_not_allowed_methods(test_user_client, test_user_database):
+    """
+    Test current user endpoint not allowed methods.
+    """
+    # Add data
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password')
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+
+    # Put
+    response = test_user_client.put(
+        USER_DETAIL_URL,
+        headers={'Authorization': f'{token_type} {token}'},)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_user_client.patch(
+        USER_DETAIL_URL,
+        headers={'Authorization': f'{token_type} {token}'},)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_user_client.delete(
+        USER_DETAIL_URL,
+        headers={'Authorization': f'{token_type} {token}'},)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Post
+    response = test_user_client.post(
+        USER_DETAIL_URL,
+        headers={'Authorization': f'{token_type} {token}'},)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_current_user_no_user(test_user_client):

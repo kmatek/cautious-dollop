@@ -38,6 +38,25 @@ def test_add_link_that_already_exists(test_client):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+def test_add_link_not_allowed_method(test_client):
+    """
+    Test all not allowed method.
+    """
+    payload = {
+        "url": "https://example.com",
+        "added_by": "Someone"
+    }
+    # Put
+    response = test_client.put(LINKS_URL, json=payload)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_client.patch(LINKS_URL, json=payload)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_client.delete(LINKS_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 def test_check_url_exists(test_client):
     """
     Test check that url exists in the databse.
@@ -62,6 +81,33 @@ def test_check_url_not_exists(test_client):
     url = CHECK_EXISTS_URL + '?url=https://example.com'
     response = test_client.get(url)
     assert response.status_code == 404
+
+
+def test_check_url_not_allowed_method(test_client):
+    """
+    Test check url endpoint not allowe methods.
+    """
+    payload = {
+        "url": "https://example.com",
+        "added_by": "Someone"
+    }
+    # Add data
+    response = test_client.post(LINKS_URL, json=payload)
+    # Check exists
+    url = CHECK_EXISTS_URL + '?url=https://example.com'
+
+    # Put
+    response = test_client.put(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_client.patch(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_client.delete(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Post
+    response = test_client.post(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_get_links_with_empty_database(test_client):
@@ -92,6 +138,30 @@ def test_get_links(test_client):
         assert obj == data[index]
 
 
+def test_get_links_not_allowed_methods(test_client):
+    """
+    Test get links not allowed methods.
+    """
+    # Add some data
+    data = []
+    for i in range(30):
+        res = test_client.post(
+            LINKS_URL,
+            json={'url': f'https://example{i}.com', 'added_by': 'Someone'}
+        )
+        data.append(res.json())
+
+    # Put
+    response = test_client.put(LINKS_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_client.patch(LINKS_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_client.delete(LINKS_URL)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 def test_get_link(test_client):
     """
     Test get link object from database.
@@ -108,6 +178,33 @@ def test_get_link(test_client):
     response = test_client.get(url)
     assert response.status_code == 200
     assert response.json() == res_data
+
+
+def test_get_link_not_allowed_methods(test_client):
+    """
+    Test get link not allowed methods.
+    """
+    # Add data
+    payload = {
+        "url": "https://example.com",
+        "added_by": "Someone"
+    }
+    res = test_client.post(LINKS_URL, json=payload)
+    res_data = res.json()
+
+    url = LINKS_URL + f"{res_data['_id']}"
+    # Put
+    response = test_client.put(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Post
+    response = test_client.post(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Patch
+    response = test_client.patch(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    # Delete
+    response = test_client.delete(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_get_link_that_not_exists(test_client):
