@@ -1,8 +1,12 @@
+from datetime import datetime
+from unittest.mock import patch
+
 import pytest
 from passlib.hash import pbkdf2_sha256
 from bson import errors
 from bson.objectid import ObjectId
 import jwt
+from freezegun import freeze_time
 
 from models.schemas import DBUser
 from models.user_services import (
@@ -165,15 +169,27 @@ def test_authenicate_user_method_with_wrong_password(test_user_database):
     assert obj is False
 
 
+@freeze_time("2023-05-27T10:00:00Z")
 def test_create_access_token(test_user_database):
     """
     Test create access token.
     """
-    payload = {'sub': 'someone'}
-    token = create_access_token(payload)
-    decoded_value = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    assert decoded_value.get('exp')
-    assert decoded_value.get('sub') == payload.get('sub')
+    # Patch value
+    with patch.object(settings, "ACCESS_TOKEN_EXPIRE_MINUTES", 10):
+        payload = {'sub': 'someone'}
+        token = create_access_token(payload)
+        decoded_value = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        assert datetime.fromtimestamp(decoded_value.get('exp')) > datetime.utcnow()
+        assert decoded_value.get('sub') == payload.get('sub')
+
+        # Check token expired
+        freezer = freeze_time(f"2023-05-27T10:{settings.ACCESS_TOKEN_EXPIRE_MINUTES + 1}:00Z")
+        freezer.start()
+
+        with pytest.raises(jwt.exceptions.ExpiredSignatureError):
+            decoded_value = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+        freezer.stop()
 
 
 def test_create_user(test_user_database):

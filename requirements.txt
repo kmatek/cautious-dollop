@@ -9,3 +9,4 @@ flake8>=6.0.0, <6.1.0
 passlib[bcrypt]>=1.7.4, <2.0
 PyJWT
 python-multipart
+freezegun
