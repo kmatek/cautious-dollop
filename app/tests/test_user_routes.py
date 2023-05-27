@@ -4,7 +4,8 @@ from models.schemas import DBUser
 from models.user_services import create_user
 
 USER_URL = "/api/user"
-TOKEN_URL = "/api/user/token"
+TOKEN_URL = USER_URL + "/token"
+USER_DETAIL_URL = USER_URL + "/me"
 
 
 def test_get_token_user_not_exists(test_user_client):
@@ -111,3 +112,39 @@ def test_create_new_user_admin(test_user_client, test_user_database):
     assert 'password' not in response.json()
     assert 'disabled' in response.json()
     assert response.json().get('is_admin') is False
+
+
+def test_current_user(test_user_client, test_user_database):
+    """
+    Test get current user endpoint.
+    """
+    # Add data
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password')
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+    # Get user data with endpoint
+    response = test_user_client.get(
+        USER_DETAIL_URL,
+        headers={'Authorization': f'{token_type} {token}'},)
+    assert response.status_code == 200
+    assert 'password' not in response.json()
+    assert response.json().get('username') == data.username
+
+
+def test_current_user_no_user(test_user_client):
+    """
+    Test get current user endpoint.
+    """
+    # Get user data with endpoint
+    response = test_user_client.get(USER_DETAIL_URL)
+    assert response.status_code == 401
+    assert 'password' not in response.json()
+    assert 'username' not in response.json()
