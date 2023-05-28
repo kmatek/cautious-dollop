@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.environ.get('SECRET_KEY')
     ALGORITHM: str = os.environ.get('ALGORITHM')
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 30)
+    TOKEN_TYPE: str = 'Bearer'
 
 
 settings = Settings()

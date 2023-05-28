@@ -17,7 +17,7 @@ def test_get_token_user_not_exists(test_user_client):
         'password': 'somepassword'
     }
     response = test_user_client.post(TOKEN_URL, data=payload)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_get_token(test_user_client, test_user_database):

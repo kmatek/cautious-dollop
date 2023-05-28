@@ -36,7 +36,7 @@ async def get_current_active_user(
     # Credentials exception
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentails.",
+        detail="Could not validate credentails or token expired.",
         headers={'WWW-Authenticate': 'Bearer'}
     )
     # Decode given token and get username
@@ -46,7 +46,7 @@ async def get_current_active_user(
         username: str = payload.get('sub')
         if username is None:
             raise credential_exception
-    except jwt.exceptions.DecodeError:
+    except (jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError):
         raise credential_exception
     # Get user with decoded username
     try:
@@ -90,13 +90,13 @@ async def get_token(
     # Check that user exists
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inavlid username or password.",
             headers={'WWW-Authenticate': 'Bearer'}
         )
     # Create access token
     access_token = create_access_token({'sub': user.username})
-    return {'access_token': access_token, 'token_type': 'Bearer'}
+    return {'access_token': access_token, 'token_type': settings.TOKEN_TYPE}
 
 
 @router.post('/', response_model=UserModel, status_code=status.HTTP_201_CREATED)
