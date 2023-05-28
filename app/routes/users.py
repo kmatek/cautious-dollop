@@ -96,7 +96,7 @@ async def get_token(
         )
     # Create access token
     access_token = create_access_token({'sub': user.username})
-    return {'access_token': access_token, 'token_type': 'Bearer'}
+    return {'access_token': access_token, 'token_type': settings.TOKEN_TYPE}
 
 
 @router.post('/', response_model=UserModel, status_code=status.HTTP_201_CREATED)
