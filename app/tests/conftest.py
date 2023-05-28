@@ -1,9 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from db.database import client
 from app.main import app
 from routes.links import get_collection
 from routes.users import get_user_collection
+from models.schemas import DBUser
+from models.user_services import create_user
 
 
 @pytest.fixture()
@@ -42,3 +45,23 @@ def test_user_client(test_user_database):
     app.dependency_overrides[get_user_collection] = lambda: test_user_database
     yield TestClient(app)
     app.dependency_overrides.pop(get_user_collection)  # Clean up the dependency override after tests
+
+
+@pytest.fixture()
+def create_test_token(test_user_client, test_user_database):
+    """
+    Helper function that will create token
+    """
+    # Get token
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password')
+    user = create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post('/api/user/token', data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+    return {'user': user, 'token': f'{token_type} {token}'}

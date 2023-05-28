@@ -16,7 +16,14 @@ class ObjectIdStr(str):
 
 class LinkIn(BaseModel):
     url: str
-    added_by: str
+    added_by: str = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "url": "https://example.com/"
+            }
+        }
 
 
 class Link(LinkIn):

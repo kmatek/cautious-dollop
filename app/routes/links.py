@@ -1,7 +1,10 @@
 from typing import Annotated
+
 from fastapi import APIRouter, status, HTTPException, Depends
 from pymongo.collection import Collection
-from models.schemas import Link, LinkIn
+from bson import errors
+
+from models.schemas import Link, LinkIn, UserModel
 from models.link_services import (
     get_links,
     get_link,
@@ -9,7 +12,7 @@ from models.link_services import (
     check_that_link_exists
 )
 from db.database import link_collection
-from bson import errors
+from .users import get_current_active_user
 
 router = APIRouter(
     prefix='/api/links',
@@ -25,7 +28,10 @@ async def get_collection():
 
 
 @router.get("/", response_model=list[Link], status_code=status.HTTP_200_OK)
-async def links(db: Annotated[Collection, Depends(get_collection)]) -> list[Link] | list:
+async def links(
+    db: Annotated[Collection, Depends(get_collection)],
+    user: Annotated[UserModel, Depends(get_current_active_user)]
+) -> list[Link] | list:
     """
     Get list of all available link objects form database.
     * All date data are returned in UTC time
@@ -34,7 +40,11 @@ async def links(db: Annotated[Collection, Depends(get_collection)]) -> list[Link
 
 
 @router.get("/exists", response_model=None, status_code=status.HTTP_200_OK)
-async def check_link_exist(url: str, db: Annotated[Collection, Depends(get_collection)]) -> dict:
+async def check_link_exist(
+    url: str,
+    db: Annotated[Collection, Depends(get_collection)],
+    user: Annotated[UserModel, Depends(get_current_active_user)]
+) -> dict:
     """
     Return boolean value that according to the link existence.
     """
@@ -48,7 +58,11 @@ async def check_link_exist(url: str, db: Annotated[Collection, Depends(get_colle
 
 
 @router.get("/{item_id}", response_model=Link, status_code=status.HTTP_200_OK)
-async def link(item_id: str, db: Annotated[Collection, Depends(get_collection)]):
+async def link(
+    item_id: str,
+    db: Annotated[Collection, Depends(get_collection)],
+    user: Annotated[UserModel, Depends(get_current_active_user)]
+):
     """
     Get a specific link based on given id.
     * All date data are returned in UTC time
@@ -63,13 +77,19 @@ async def link(item_id: str, db: Annotated[Collection, Depends(get_collection)])
 
 
 @router.post("/", response_model=Link, status_code=status.HTTP_201_CREATED)
-async def add_new_link(data: LinkIn, db: Annotated[Collection, Depends(get_collection)]):
+async def add_new_link(
+    data: LinkIn,
+    db: Annotated[Collection, Depends(get_collection)],
+    user: Annotated[UserModel, Depends(get_current_active_user)]
+):
     """
     Add new link object to the database.
     Return added object.
     * All date data are returned in UTC time
     """
     try:
+        # Update data with current user
+        data.added_by = user.username
         return add_link(data, collection=db)
     except ValueError as e:
         raise HTTPException(
