@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class ObjectIdStr(str):
@@ -15,7 +15,7 @@ class ObjectIdStr(str):
 
 
 class LinkIn(BaseModel):
-    url: str
+    url: HttpUrl
     added_by: str = None
 
     class Config:
