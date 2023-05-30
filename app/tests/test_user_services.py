@@ -223,3 +223,18 @@ def test_create_user_invalid_email():
     # Add user to the database
     with pytest.raises(error_wrappers.ValidationError):
         DBUser(username='user', password='password', email='exampleail.com')
+
+
+def test_check_user_already_exists(test_user_database):
+    """
+    Test checking that user with given email already exists.
+    """
+    collection = test_user_database
+
+    # Add user to the database
+    data = DBUser(
+        username='user', password='password', email='example@email.com')
+    create_user(data, collection)
+
+    with pytest.raises(ValueError):
+        create_user(data, collection)

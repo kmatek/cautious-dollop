@@ -90,6 +90,16 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
+def check_that_user_exists(email: str, collection: Collection) -> bool:
+    """
+    Check that link with given url exists.
+    """
+    obj = collection.find_one({'email': email})
+    if obj:
+        return True
+    return False
+
+
 def create_user(data: DBUser, collection: Collection) -> UserModel:
     """
     Add user to database.
@@ -100,6 +110,11 @@ def create_user(data: DBUser, collection: Collection) -> UserModel:
 
     # Update date_added field
     data.date_added = datetime.utcnow()
+
+    # Check that user with given email exists
+    exists = check_that_user_exists(data.email, collection)
+    if exists:
+        raise ValueError('User with this email already exists.')
 
     # Add user to the database
     obj = collection.insert_one(data.dict())

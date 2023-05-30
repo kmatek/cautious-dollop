@@ -177,6 +177,44 @@ def test_create_new_user_with_wrong_email(test_user_client, test_user_database):
     assert 'email' not in response.json()
 
 
+def test_create_new_user_with_email_already_exists(test_user_client, test_user_database):
+    """
+    Test create user endpoint with given email that already exists.
+    """
+    # Create no admin user
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password', is_admin=True)
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+
+    payload = {
+        'username': 'someone',
+        'password': 'password',
+        'email': 'example@email.com'
+    }
+    response = test_user_client.post(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # Already exists
+    response = test_user_client.post(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_create_new_user_not_allowed_methods(test_user_client, test_user_database):
     """
     Test create new user endpoint not allowed methods.
