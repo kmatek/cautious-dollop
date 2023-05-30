@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class ObjectIdStr(str):
@@ -44,6 +44,7 @@ class Link(LinkIn):
 
 class UserModel(BaseModel):
     id: Optional[ObjectIdStr] = Field(None, alias='_id')
+    email: EmailStr = None
     username: str
     is_admin: bool = False
     date_added: datetime = None

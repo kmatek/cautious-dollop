@@ -7,6 +7,7 @@ from bson import errors
 from bson.objectid import ObjectId
 import jwt
 from freezegun import freeze_time
+from pydantic import error_wrappers
 
 from models.schemas import DBUser
 from models.user_services import (
@@ -199,10 +200,12 @@ def test_create_user(test_user_database):
     collection = test_user_database
 
     # Add user to the database
-    data = DBUser(username='user', password='password')
+    data = DBUser(
+        username='user', password='password', email='example@email.com')
     obj = create_user(data, collection)
 
     assert obj.username == data.username
+    assert obj.email == data.email
     assert obj.is_admin is False
     assert obj.disabled is False
     assert obj.date_added is not None
@@ -211,3 +214,12 @@ def test_create_user(test_user_database):
 
     user_obj = collection.find_one({'_id': ObjectId(obj.id)})
     assert pbkdf2_sha256.verify('password', user_obj.get('password')) is True
+
+
+def test_create_user_invalid_email():
+    """
+    Test add new user to the database.
+    """
+    # Add user to the database
+    with pytest.raises(error_wrappers.ValidationError):
+        DBUser(username='user', password='password', email='exampleail.com')

@@ -126,7 +126,8 @@ def test_create_new_user_admin(test_user_client, test_user_database):
 
     payload = {
         'username': 'someone',
-        'password': 'password'
+        'password': 'password',
+        'email': 'example@email.com'
     }
     response = test_user_client.post(
         USER_URL,
@@ -134,11 +135,46 @@ def test_create_new_user_admin(test_user_client, test_user_database):
         json=payload,
     )
     assert response.status_code == status.HTTP_201_CREATED
-    assert 'username' in response.json()
-    assert 'is_admin' in response.json()
+    assert payload.get('username') == response.json().get('username')
     assert 'password' not in response.json()
-    assert 'disabled' in response.json()
+    assert response.json().get('disabled') is False
     assert response.json().get('is_admin') is False
+    assert payload.get('email') == response.json().get('email')
+
+
+def test_create_new_user_with_wrong_email(test_user_client, test_user_database):
+    """
+    Test create user endpoint.
+    """
+    # Create no admin user
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password', is_admin=True)
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+
+    payload = {
+        'username': 'someone',
+        'password': 'password',
+        'email': 'exampleemail.com'
+    }
+    response = test_user_client.post(
+        USER_URL,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert 'username' not in response.json()
+    assert 'password' not in response.json()
+    assert 'disabled' not in response.json()
+    assert 'is_admin' not in response.json()
+    assert 'email' not in response.json()
 
 
 def test_create_new_user_not_allowed_methods(test_user_client, test_user_database):

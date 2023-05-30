@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pymongo.collection import Collection
 import jwt
+from pydantic import error_wrappers
 
 from db.database import user_collection
 from app.config import settings
@@ -111,7 +112,7 @@ async def create_new_user(
     # Return user
     try:
         return create_user(data, db)
-    except ValueError as e:
+    except (ValueError, error_wrappers.ValidationError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
