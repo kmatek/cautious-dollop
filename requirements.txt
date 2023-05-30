@@ -10,3 +10,4 @@ passlib[bcrypt]>=1.7.4, <2.0
 PyJWT
 python-multipart
 freezegun
+pydantic[email]
