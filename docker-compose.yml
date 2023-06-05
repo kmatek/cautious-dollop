@@ -14,11 +14,27 @@ services:
       - SECRET_KEY=somesecretkey
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    depends_on:
+      mongo:
+        condition: service_healthy
 
   mongo:
     image: mongo
     restart: unless-stopped
     container_name: mongo
+    volumes:
+      - dbdata6:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --quiet | grep 1
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  dbdata6:
