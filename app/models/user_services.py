@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
 from pymongo.collection import Collection
-from pydantic import error_wrappers
 from passlib.hash import pbkdf2_sha256
 from bson.objectid import ObjectId
 from bson import errors
@@ -40,10 +39,7 @@ def get_user(user_id: str, collection: Collection) -> UserModel:
     user_obj = collection.find_one({'_id': user_id})
 
     # Parse data into UserModel
-    try:
-        return user_serializer(user_obj)
-    except error_wrappers.ValidationError:
-        raise ValueError('User does not exists')
+    return user_serializer(user_obj)
 
 
 def get_user_with_password(username: str, collection: Collection) -> DBUser:
@@ -52,11 +48,9 @@ def get_user_with_password(username: str, collection: Collection) -> DBUser:
     """
     # Get user from database
     user_obj = collection.find_one({"username": username})
+
     # Parse data into UserModel
-    try:
-        return dbuser_serializer(user_obj)
-    except error_wrappers.ValidationError:
-        raise ValueError('User does not exists')
+    return dbuser_serializer(user_obj)
 
 
 def authenticate_user(collection: Collection, username: str, password: str) -> bool | DBUser:
@@ -121,3 +115,24 @@ def create_user(data: DBUser, collection: Collection) -> UserModel:
 
     # Return UserModel schema
     return get_user(str(obj.inserted_id), collection)
+
+
+def update_user_password(user_id: str, collection: Collection, password: str) -> UserModel:
+    """
+    Update user password.
+    """
+    # Convert given str id into ObjectId object
+    try:
+        user_id = ObjectId(user_id)
+    except errors.InvalidId as e:
+        raise e
+
+    # Hash user password
+    user_pwd = get_hashed_password(password)
+
+    # Update user password
+    obj = collection.find_one_and_update(
+        {'_id': user_id}, {'$set': {'password': user_pwd}})
+
+    # Parse data into UserModel
+    return user_serializer(obj)
