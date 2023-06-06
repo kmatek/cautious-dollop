@@ -17,7 +17,8 @@ from models.user_services import (
     verify_password,
     get_user_with_password,
     authenticate_user,
-    create_access_token
+    create_access_token,
+    update_user_password,
 )
 from app.config import settings
 
@@ -238,3 +239,23 @@ def test_check_user_already_exists(test_user_database):
 
     with pytest.raises(ValueError):
         create_user(data, collection)
+
+
+def test_update_user_password(test_user_database):
+    """
+    Test update user password.
+    """
+    collection = test_user_database
+
+    # Add user to the database
+    data = DBUser(
+        username='user', password='password',
+    )
+    obj = create_user(data, collection)
+
+    # Update password
+    update_user_password(
+        user_id=obj.id, password='new-password', collection=collection)
+
+    user_obj = collection.find_one({'_id': ObjectId(obj.id)})
+    assert pbkdf2_sha256.verify('new-password', user_obj.get('password')) is True

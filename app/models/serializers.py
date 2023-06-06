@@ -1,3 +1,5 @@
+from pydantic import error_wrappers
+
 from .schemas import Link, UserModel, DBUser
 
 
@@ -12,11 +14,17 @@ def user_serializer(obj: dict) -> UserModel:
     """
     Parse user data from database into UserModel schema.
     """
-    return UserModel.parse_obj(obj)
+    try:
+        return UserModel.parse_obj(obj)
+    except error_wrappers.ValidationError:
+        raise ValueError('User does not exists')
 
 
 def dbuser_serializer(obj: dict) -> DBUser:
     """
     Parse user data from database into DBUser schema.
     """
-    return DBUser.parse_obj(obj)
+    try:
+        return DBUser.parse_obj(obj)
+    except error_wrappers.ValidationError:
+        raise ValueError('User does not exists')

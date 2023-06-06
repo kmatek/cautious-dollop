@@ -6,6 +6,7 @@ from models.user_services import create_user
 USER_URL = "/api/user"
 TOKEN_URL = USER_URL + "/token"
 USER_DETAIL_URL = USER_URL + "/me"
+USER_PASSWORD_UPDATE = USER_URL + "/update-password"
 
 
 def test_get_token_user_not_exists(test_user_client):
@@ -337,3 +338,38 @@ def test_current_user_no_user(test_user_client):
     assert response.status_code == 401
     assert 'password' not in response.json()
     assert 'username' not in response.json()
+
+
+def test_update_user_password(test_user_client, test_user_database):
+    """
+    Test update user password endpoint.
+    """
+    # Add data
+    collection = test_user_database
+    data = DBUser(username='someone1', password='password')
+    create_user(data, collection)
+    # Get token
+    payload = {
+        'username': data.username,
+        'password': 'password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+    # Update password
+    payload = {
+        'new_password': 'new_password'
+    }
+    response = test_user_client.put(
+        USER_PASSWORD_UPDATE,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    # Get token with new password
+    payload = {
+        'username': 'someone1',
+        'password': 'new_password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    assert response.status_code == status.HTTP_201_CREATED
