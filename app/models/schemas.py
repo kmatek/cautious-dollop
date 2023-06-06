@@ -61,7 +61,8 @@ class DBUser(UserModel):
         schema_extra = {
             "example": {
                 "username": "string",
-                "password": "string"
+                "password": "string",
+                "email": "example@email.com"
             }
         }
 
@@ -69,3 +70,14 @@ class DBUser(UserModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class PasswordUpdate(BaseModel):
+    new_password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "new_password": "password"
+            }
+        }

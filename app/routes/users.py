@@ -7,8 +7,14 @@ import jwt
 
 from db.database import user_collection
 from app.config import settings
-from models.user_services import get_user_with_password, authenticate_user, create_access_token, create_user
-from models.schemas import Token, DBUser, UserModel
+from models.user_services import (
+    get_user_with_password,
+    authenticate_user,
+    create_access_token,
+    create_user,
+    update_user_password
+)
+from models.schemas import Token, DBUser, UserModel, PasswordUpdate
 
 router = APIRouter(
     prefix='/api/user',
@@ -124,3 +130,22 @@ async def user_detail(user: Annotated[UserModel, Depends(get_current_active_user
     Get current user by given token.
     """
     return user
+
+
+@router.put('/update-password', response_model=UserModel, status_code=status.HTTP_200_OK)
+async def update_password(
+    data: PasswordUpdate,
+    db: Annotated[Collection, Depends(get_user_collection)],
+    user: Annotated[UserModel, Depends(get_current_active_user)]
+) -> UserModel:
+    """
+    Update current user password.
+    """
+    # Update given password and return user
+    try:
+        return update_user_password(user.id, db, data.new_password)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

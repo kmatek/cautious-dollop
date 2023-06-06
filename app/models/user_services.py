@@ -131,8 +131,11 @@ def update_user_password(user_id: str, collection: Collection, password: str) ->
     user_pwd = get_hashed_password(password)
 
     # Update user password
-    obj = collection.find_one_and_update(
+    obj = collection.update_one(
         {'_id': user_id}, {'$set': {'password': user_pwd}})
 
+    if obj.modified_count == 0:
+        raise ValueError('User does not exists.')
+
     # Parse data into UserModel
-    return user_serializer(obj)
+    return get_user(str(user_id), collection)
