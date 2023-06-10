@@ -25,18 +25,26 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return pbkdf2_sha256.verify(password, hashed_password)
 
 
+def get_raw_user_data(collection: Collection, **kwargs) -> dict:
+    """
+    Return raw user data.
+    """
+    if '_id' in kwargs:
+        # Convert given str id into ObjectId object
+        try:
+            kwargs.update({'_id': ObjectId(kwargs.get('_id'))})
+        except errors.InvalidId as e:
+            raise e
+
+    return collection.find_one(kwargs)
+
+
 def get_user(user_id: str, collection: Collection) -> UserModel:
     """
     Get user from database.
     """
-    # Convert given str id into ObjectId object
-    try:
-        user_id = ObjectId(user_id)
-    except errors.InvalidId as e:
-        raise e
-
     # Get user from database
-    user_obj = collection.find_one({'_id': user_id})
+    user_obj = get_raw_user_data(collection, _id=user_id)
 
     # Parse data into UserModel
     return user_serializer(user_obj)
@@ -47,7 +55,7 @@ def get_user_with_password(username: str, collection: Collection) -> DBUser:
     Get user with hashed password from databse.
     """
     # Get user from database
-    user_obj = collection.find_one({"username": username})
+    user_obj = get_raw_user_data(collection, username=username)
 
     # Parse data into UserModel
     return dbuser_serializer(user_obj)
@@ -88,7 +96,7 @@ def check_that_user_exists(email: str, collection: Collection) -> bool:
     """
     Check that link with given url exists.
     """
-    obj = collection.find_one({'email': email})
+    obj = get_raw_user_data(collection, email=email)
     if obj:
         return True
     return False
@@ -98,17 +106,17 @@ def create_user(data: DBUser, collection: Collection) -> UserModel:
     """
     Add user to database.
     """
+    # Check that user with given email exists
+    exists = check_that_user_exists(data.email, collection)
+    if exists:
+        raise ValueError('User with this email already exists.')
+
     # Hash user password
     user_pwd = get_hashed_password(data.password)
     data.password = user_pwd
 
     # Update date_added field
     data.date_added = datetime.utcnow()
-
-    # Check that user with given email exists
-    exists = check_that_user_exists(data.email, collection)
-    if exists:
-        raise ValueError('User with this email already exists.')
 
     # Add user to the database
     obj = collection.insert_one(data.dict())
