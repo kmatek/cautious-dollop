@@ -29,7 +29,7 @@ def get_raw_user_data(collection: Collection, **kwargs) -> dict:
     """
     Return raw user data.
     """
-    if '_id' in kwargs:
+    if '_id' in kwargs and type(kwargs.get('_id')) == str:
         # Convert given str id into ObjectId object
         try:
             kwargs.update({'_id': ObjectId(kwargs.get('_id'))})
@@ -122,28 +122,36 @@ def create_user(data: DBUser, collection: Collection) -> UserModel:
     obj = collection.insert_one(data.dict())
 
     # Return UserModel schema
-    return get_user(str(obj.inserted_id), collection)
+    return get_user(obj.inserted_id, collection)
 
 
-def update_user_password(user_id: str, collection: Collection, password: str) -> UserModel:
+def update_user_password(
+    user_id: str, collection: Collection,
+    new_password: str, old_password: str
+) -> UserModel:
     """
     Update user password.
     """
-    # Convert given str id into ObjectId object
-    try:
-        user_id = ObjectId(user_id)
-    except errors.InvalidId as e:
-        raise e
+    # Get user_from database
+    user = get_raw_user_data(collection, _id=user_id)
+
+    # Check that user exists
+    if not user:
+        raise ValueError('User does not exists.')
+
+    # Check that given old password is correct
+    if not verify_password(old_password, user.get('password')):
+        raise ValueError('Old password is incorrect.')
 
     # Hash user password
-    user_pwd = get_hashed_password(password)
+    user_pwd = get_hashed_password(new_password)
 
     # Update user password
     obj = collection.update_one(
-        {'_id': user_id}, {'$set': {'password': user_pwd}})
+        {'_id': ObjectId(user_id)}, {'$set': {'password': user_pwd}})
 
     if obj.modified_count == 0:
         raise ValueError('User does not exists.')
 
     # Parse data into UserModel
-    return get_user(str(user_id), collection)
+    return get_user(user_id, collection)

@@ -253,9 +253,17 @@ def test_update_user_password(test_user_database):
     )
     obj = create_user(data, collection)
 
+    # Update password with wrong old_password
+    with pytest.raises(ValueError):
+        update_user_password(
+            user_id=obj.id, old_password='drowssap',
+            new_password='new-password', collection=collection
+        )
+
     # Update password
     update_user_password(
-        user_id=obj.id, password='new-password', collection=collection)
-
+        user_id=obj.id, old_password='password',
+        new_password='new-password', collection=collection
+    )
     user_obj = collection.find_one({'_id': ObjectId(obj.id)})
     assert pbkdf2_sha256.verify('new-password', user_obj.get('password')) is True

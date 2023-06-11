@@ -73,11 +73,13 @@ class Token(BaseModel):
 
 
 class PasswordUpdate(BaseModel):
+    old_password: str
     new_password: str
 
     class Config:
         schema_extra = {
             "example": {
+                "old_password": "password",
                 "new_password": "password"
             }
         }

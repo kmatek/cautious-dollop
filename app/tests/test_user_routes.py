@@ -356,8 +356,30 @@ def test_update_user_password(test_user_client, test_user_database):
     response = test_user_client.post(TOKEN_URL, data=payload)
     token = response.json().get('access_token')
     token_type = response.json().get('token_type')
-    # Update password
+
+    # Update password with wrtoing old password
     payload = {
+        'old_password': 'wrong_password',
+        'new_password': 'new_password'
+    }
+    response = test_user_client.put(
+        USER_PASSWORD_UPDATE,
+        headers={'Authorization': f'{token_type} {token}'},
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Try get token with new password
+    payload = {
+        'username': 'someone1',
+        'password': 'new_password'
+    }
+    response = test_user_client.post(TOKEN_URL, data=payload)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Update password with correct old password
+    payload = {
+        'old_password': 'password',
         'new_password': 'new_password'
     }
     response = test_user_client.put(
@@ -366,7 +388,8 @@ def test_update_user_password(test_user_client, test_user_database):
         json=payload,
     )
     assert response.status_code == status.HTTP_200_OK
-    # Get token with new password
+
+    # Try get token with new password
     payload = {
         'username': 'someone1',
         'password': 'new_password'
