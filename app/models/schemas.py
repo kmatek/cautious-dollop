@@ -72,6 +72,19 @@ class Token(BaseModel):
     token_type: str
 
 
+class TokenIn(BaseModel):
+    email: EmailStr
+    password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "example@email.com",
+                "password": "string"
+            }
+        }
+
+
 class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
