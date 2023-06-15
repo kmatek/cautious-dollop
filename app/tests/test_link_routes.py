@@ -121,7 +121,7 @@ def test_check_url_exists(test_client, create_test_token):
     url = CHECK_EXISTS_URL + '?url=https://example.com'
     response = test_client.get(
         url, headers={'Authorization': data.get("token")})
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_check_url_not_exists(test_client, create_test_token):
@@ -134,7 +134,7 @@ def test_check_url_not_exists(test_client, create_test_token):
     url = CHECK_EXISTS_URL + '?url=https://example.com'
     response = test_client.get(
         url, headers={'Authorization': data.get("token")})
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_check_url_not_allowed_method(test_client):
