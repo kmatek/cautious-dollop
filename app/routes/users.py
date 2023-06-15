@@ -97,7 +97,7 @@ async def get_token(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inavlid username or password.",
+            detail="Inavlid email or password.",
             headers={'WWW-Authenticate': 'Bearer'}
         )
     # Create access token
