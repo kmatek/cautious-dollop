@@ -129,7 +129,7 @@ async def user_detail(user: Annotated[UserModel, Depends(get_current_active_user
     """
     Get current user by given token.
     """
-    return user
+    return user.dict(exclude={'id'})
 
 
 @router.put('/update-password', response_model=UserModel, status_code=status.HTTP_200_OK)
