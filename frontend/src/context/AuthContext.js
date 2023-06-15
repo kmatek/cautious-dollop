@@ -17,7 +17,7 @@ export const AuthProvider = ({children}) => {
     // Set initial values
     let [authToken, setAuthToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : null);
     let [expirationDate, setExpirationDate] = useState(localStorage.getItem('expirationDate') ? localStorage.getItem('expirationDate') : null);
-    let [user, setUser] = useState(localStorage.getItem('user') ? localStorage.getItem('user') : null);
+    let [user, setUser] = useState(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null);
     let [error, setError] = useState(null);
     let [loading, setLoading] = useState(true)
 
@@ -64,7 +64,7 @@ export const AuthProvider = ({children}) => {
                     setLoading(false);
                 }
 
-                localStorage.setItem('user', newData.username);
+                localStorage.setItem('user', JSON.stringify(newData));
                 setUser(newData);
                 history.push('/');
             };
