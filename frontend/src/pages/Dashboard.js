@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useRef} from 'react';
 import AuthContext from '../context/AuthContext';
 
 
@@ -39,6 +39,27 @@ const DashboardPage = () => {
         
     };
 
+    const inputRef = useRef(null);
+
+    let createLink = async () => {
+        // Create link
+        let response = await fetch(`/api/links/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken
+            },
+            body: JSON.stringify({url: inputRef.current.value})
+        });
+
+        if (response.status === 201){
+            console.log(response.status);
+            setCreate(false);
+            setError(null);
+            inputRef.current.value = '';
+        }
+    };
+
 
     return (
         <div className="h-100 container">
@@ -47,27 +68,60 @@ const DashboardPage = () => {
                 <div className='w-100 d-flex flex-column justify-content-center align-items-center'>
                     {error ? (
                         <div className="w-100 d-flex flex-column align-items-center">
-                            <input type="text" className="form-control is-invalid form-control-lg mx-auto w-100" id="validationServerUsername" aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" name='url' placeholder="Sprawdź url" required/>
+                            <input
+                              type="text"
+                              className="form-control is-invalid form-control-lg mx-auto w-100"
+                              id="validationServerUsername"
+                              aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback"
+                              name='url'
+                              placeholder="Sprawdź url"
+                              required
+                            />
                             <div id="validationServerUsernameFeedback" className="invalid-feedback">
                                 {error}
                             </div>
-                            <button type='submit' className="btn btn-success btn-lg mt-3 px-3 py-2 w-100" style={{maxWidth: 200}}>Sprawdź</button>
+                            <button
+                              type='submit'
+                              className="btn btn-success btn-lg mt-3 px-3 py-2 w-100"
+                              style={{maxWidth: 200}}>Sprawdź</button>
                         </div>
                     ): (create ? (
                             <div className='w-100 d-flex flex-column align-items-center'>
-                                <input className="form-control form-control-lg is-valid mx-auto w-100" type="text" placeholder='Sprawdz url' name="url" required/>
+                                <input
+                                  ref={inputRef}
+                                  className="form-control form-control-lg is-valid mx-auto w-100"
+                                  type="text"
+                                  placeholder='Sprawdz url'
+                                  name="url" 
+                                  required
+                                />
                                 <div className="valid-feedback">
                                     Link jest poprawny.
                                 </div>
                                 <div className='d-flex gap-2'>
-                                    <button type='submit' className="btn btn-success btn-lg mt-3 px-3 py-2 w-100" style={{maxWidth: 200}}>Sprawdź</button>
-                                    <button type='submit' className="btn btn-success btn-lg mt-3 px-3 py-2 w-100" style={{maxWidth: 200}}>Dodaj</button>
+                                    <button
+                                      type='submit'
+                                      className="btn btn-success btn-lg mt-3 px-3 py-2 w-100"
+                                      style={{maxWidth: 200}}>Sprawdź</button>
+                                    <div
+                                      onClick={createLink}
+                                      className="btn btn-success btn-lg mt-3 px-3 py-2 w-100"
+                                      style={{maxWidth: 200}}>Dodaj</div>
                                 </div>
                             </div>
                         ): (
                             <div className='w-100 d-flex flex-column align-items-center'>
-                                <input className="form-control form-control-lg mx-auto w-100" type="text" name="url" placeholder="Sprawdź url" required/>
-                                <button type='submit' className="btn btn-success btn-lg mt-3 px-3 py-2 w-100" style={{maxWidth: 200}}>Sprawdź</button>
+                                <input
+                                  className="form-control form-control-lg mx-auto w-100"
+                                  type="text"
+                                  name="url"
+                                  placeholder="Sprawdź url"
+                                  required
+                                />
+                                <button
+                                  type='submit'
+                                  className="btn btn-success btn-lg mt-3 px-3 py-2 w-100"
+                                  style={{maxWidth: 200}}>Sprawdź</button>
                             </div>
                             
                         )
