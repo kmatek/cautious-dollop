@@ -181,7 +181,12 @@ def test_get_links_with_empty_database(test_client, create_test_token):
     response = test_client.get(
         LINKS_URL, headers={'Authorization': data.get('token')})
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+    data = response.json()
+    assert data['items'] == []
+    assert data['total'] == 0
+    assert data['pages'] == 0
+    assert data['links']['next'] is None
+    assert data['links']['prev'] is None
 
 
 def test_get_links(test_client, create_test_token):
@@ -192,7 +197,7 @@ def test_get_links(test_client, create_test_token):
 
     # Add some data
     data = []
-    for i in range(30):
+    for i in range(60):
         res = test_client.post(
             LINKS_URL,
             headers={'Authorization': token_data.get('token')},
@@ -203,8 +208,26 @@ def test_get_links(test_client, create_test_token):
     response = test_client.get(
         LINKS_URL, headers={'Authorization': token_data.get('token')})
     assert response.status_code == status.HTTP_200_OK
-    for index, obj in enumerate(response.json()):
-        assert obj == data[index]
+    data = response.json()
+
+    assert len(data['items']) == 50
+    assert data['total'] == 60
+    assert data['pages'] == 2
+    assert data['page'] == 1
+    assert data['links']['next'] is not None
+    assert data['links']['prev'] is None
+
+    response = test_client.get(
+        data['links']['next'], headers={'Authorization': token_data.get('token')})
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+
+    assert len(data['items']) == 10
+    assert data['total'] == 60
+    assert data['pages'] == 2
+    assert data['page'] == 2
+    assert data['links']['next'] is None
+    assert data['links']['prev'] is not None
 
 
 def test_get_links_not_allowed_methods(test_client):

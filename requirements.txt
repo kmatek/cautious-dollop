@@ -11,3 +11,4 @@ PyJWT
 python-multipart
 freezegun
 pydantic[email]
+fastapi-pagination
