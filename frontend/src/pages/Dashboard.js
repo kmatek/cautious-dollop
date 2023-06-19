@@ -1,5 +1,6 @@
-import React, {useContext, useState, useRef} from 'react';
+import React, {useContext, useState, useRef, useEffect} from 'react';
 import AuthContext from '../context/AuthContext';
+import moment from 'moment';
 
 
 const DashboardPage = () => {
@@ -7,6 +8,10 @@ const DashboardPage = () => {
     let {user, authToken} = useContext(AuthContext)
     let [error, setError] = useState(null);
     let [create, setCreate] = useState(false);
+    let [links, setLinks] = useState([]);
+    let [loadingLinks, setLoadingLinks] = useState(false);
+    let [nextPage, setNextPage] = useState(null);
+    let [previousPage, setPreviousPage] = useState(null);
 
 
     let checkLink = async (e) => {
@@ -19,15 +24,11 @@ const DashboardPage = () => {
                 'Authorization': authToken
             }
         });
-
-        // Get response
-        let data = await response.json();
-
         if(response.status === 422){
             setError('Wprowadzono błędy url.');
             return;
         }else if(response.status === 400){
-            setError('Wprowadzony link nie istnieje.');
+            setError('Wprowadzony link już istnieje.');
             return;
         }else if(response.status === 200){
             if(error){
@@ -60,6 +61,92 @@ const DashboardPage = () => {
         }
     };
 
+    let getLinks = async () => {
+        // Get links
+        let response = await fetch(`/api/links/?size=7`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken
+            }
+        });
+
+        // Get response
+        let data = await response.json();
+
+        if(response.status === 200){
+            setLinks(data);
+            setLoadingLinks(true);
+            // Get pagination links
+            if(data.links.next){
+                setNextPage(data.links.next);
+            }
+            if(data.links.previous){
+                setPreviousPage(data.links.previous);
+            }
+        }
+
+    };
+
+    let getNextPage = async () => {
+        // Get links
+        let response = await fetch(nextPage, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken
+            }
+        });
+
+        // Get response
+        let data = await response.json();
+
+        if(response.status === 200){
+            setLinks(data);
+            // Get pagination links
+            if(data.links.next){
+                setNextPage(data.links.next);
+            }
+            if(data.links.prev){
+                setPreviousPage(data.links.prev);
+            }
+        }
+    };
+
+    let getPrevPage = async () => {
+        // Get links
+        let response = await fetch(previousPage, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken
+            }
+        });
+
+        // Get response
+        let data = await response.json();
+
+        if(response.status === 200){
+            setLinks(data);
+            // Get pagination links
+            if(data.links.next){
+                setNextPage(data.links.next);
+            }
+            if(data.links.prev){
+                setPreviousPage(data.links.prev);
+            }
+        }
+    };
+
+    const convertToGMTPlus2 = (utcDate) => {
+        const utcMoment = moment.utc(utcDate);
+        const convertedMoment = utcMoment.utcOffset('+0200');
+        return convertedMoment.format('YYYY-MM-DD HH:mm:ss');
+    };
+
+    useEffect(() => {
+        getLinks();
+    }, []);
 
     return (
         <div className="h-100 container">
@@ -130,8 +217,6 @@ const DashboardPage = () => {
             </form>
 
 
-
-
             <div className='w-100 d-flex flex-column justify-content-center align-items-center'>
                 <h2 className='mt-5 pb-2'>Samochody</h2>
                 <div className='w-100 table-responsive'>
@@ -144,26 +229,44 @@ const DashboardPage = () => {
                             </tr>
                         </thead>
                         <tbody className='table-group-divider'>
-                            <tr>
-                                <td><a className='link-underline link-underline-opacity-0' href='https://www.example.com'>https://www.example.com</a></td>
-                                <td>Ktoś</td>
-                                <td>22.12.2023 15:00</td>
-                            </tr>
+                            {loadingLinks && links ? (
+                                links.items?.map(link => (
+                                    <tr key={link._id}>
+                                        <td><a className='link-underline link-underline-opacity-0' href={link.url}>{link.url}</a></td>
+                                        <td>{link.added_by}</td> <td>{convertToGMTPlus2(link.date_added)}</td>
+                                    </tr>))
+                                ): (
+                                    <tr>
+                                        <td colSpan={3} className='text-center h3'>Pobieram dane...</td>
+                                    </tr>
+                                )
+                            }
                         </tbody>
                     </table>
-                    <nav aria-label="Page navigation example">
-                        <ul className="pagination justify-content-center">
-                            <li className="page-item disabled">
-                                <a className="page-link">Cofnij</a>
-                            </li>
-                            <li className="page-item"><a className="page-link" href="#">1</a></li>
-                            <li className="page-item"><a className="page-link" href="#">2</a></li>
-                            <li className="page-item"><a className="page-link" href="#">3</a></li>
-                            <li className="page-item">
-                                <a className="page-link" href="#">Następna</a>
-                            </li>
-                        </ul>
-                    </nav>
+
+                    {loadingLinks && links.links ? (
+                        <nav aria-label="Page navigation example">
+                            <ul className="pagination justify-content-center">
+                                {links.links.prev ? (
+                                <li className="page-item">
+                                    <a className="page-link" onClick={getPrevPage}>Poprzednia strona</a>
+                                </li>
+                                ): (<li className="page-item disabled">
+                                        <a className="page-link" href="#">Poprzednia strona</a>
+                                    </li>
+                                )}
+
+                                {links.links.next ? (
+                                <li className="page-item">
+                                    <a className="page-link" onClick={getNextPage}>Następna strona</a>
+                                </li>
+                                ): (<li className="page-item disabled">
+                                        <a className="page-link" href="#">Następna strona</a>
+                                    </li>
+                                )}
+                            </ul>
+                        </nav>
+                    ): null}
                 </div>
             </div>
         </div>
