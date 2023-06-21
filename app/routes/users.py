@@ -143,8 +143,9 @@ async def update_password(
     """
     # Update given password and return user
     try:
+        # Return user data without id
         return update_user_password(
-            user.id, db, data.new_password, data.old_password)
+            user.id, db, data.new_password, data.old_password).dict(exclude={'id'})
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
