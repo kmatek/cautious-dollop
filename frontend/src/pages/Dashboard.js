@@ -1,6 +1,7 @@
 import React, {useContext, useState, useRef, useEffect} from 'react';
 import AuthContext from '../context/AuthContext';
 import moment from 'moment';
+import ChangePassModal from '../components/ChangePasswordModal';
 
 
 const DashboardPage = () => {
@@ -150,7 +151,21 @@ const DashboardPage = () => {
 
     return (
         <div className="h-100 container">
-            {user && <h1 className='pb-5 my-5'>Cześć {user.username}</h1>}
+            <nav className='d-flex flex-column pb-5 my-5'>
+                {user ? <h1>Cześć {user.username}</h1> : null}
+                {user && user.is_admin? (
+                    <div className='d-flex flex-column gap-3'>
+                        <button 
+                        className="btn btn-success mt-3 px-3 py-2 w-100"
+                        style={{maxWidth: 200}}>
+                            Doodaj użytkownika
+                        </button>
+                        <ChangePassModal />
+                    </div>
+                ) : (
+                    <ChangePassModal />
+                )}
+            </nav>
             <form onSubmit={checkLink} className='mb-5 pb-5'>
                 <div className='w-100 d-flex flex-column justify-content-center align-items-center'>
                     {error ? (
