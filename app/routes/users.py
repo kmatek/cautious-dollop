@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from pymongo.collection import Collection
 import jwt
 
@@ -14,7 +14,7 @@ from models.user_services import (
     create_user,
     update_user_password
 )
-from models.schemas import Token, DBUser, UserModel, PasswordUpdate
+from models.schemas import Token, DBUser, UserModel, PasswordUpdate, TokenIn
 
 router = APIRouter(
     prefix='/api/user',
@@ -85,23 +85,23 @@ async def get_admin_user(
 # Endpoints
 @router.post('/token', response_model=Token, status_code=status.HTTP_201_CREATED)
 async def get_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    data: TokenIn,
     db: Annotated[Collection, Depends(get_user_collection)]
 ) -> dict:
     """
     Get JWT token.
     """
     # Get user
-    user = authenticate_user(db, form_data.username, form_data.password)
+    user = authenticate_user(db, data.email, data.password)
     # Check that user exists
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inavlid username or password.",
+            detail="Inavlid email or password.",
             headers={'WWW-Authenticate': 'Bearer'}
         )
     # Create access token
-    access_token = create_access_token({'sub': user.username})
+    access_token = create_access_token({'sub': user.email})
     return {'access_token': access_token, 'token_type': settings.TOKEN_TYPE}
 
 
@@ -129,7 +129,7 @@ async def user_detail(user: Annotated[UserModel, Depends(get_current_active_user
     """
     Get current user by given token.
     """
-    return user
+    return user.dict(exclude={'id'})
 
 
 @router.put('/update-password', response_model=UserModel, status_code=status.HTTP_200_OK)
@@ -143,8 +143,9 @@ async def update_password(
     """
     # Update given password and return user
     try:
+        # Return user data without id
         return update_user_password(
-            user.id, db, data.new_password, data.old_password)
+            user.id, db, data.new_password, data.old_password).dict(exclude={'id'})
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -3,6 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, status, HTTPException, Depends
 from pymongo.collection import Collection
 from bson import errors
+from pydantic import HttpUrl
+from fastapi_pagination.links import Page
+from fastapi_pagination import paginate
 
 from models.schemas import Link, LinkIn, UserModel
 from models.link_services import (
@@ -27,21 +30,21 @@ async def get_collection():
     yield link_collection
 
 
-@router.get("/", response_model=list[Link], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=Page[Link], status_code=status.HTTP_200_OK)
 async def links(
     db: Annotated[Collection, Depends(get_collection)],
     user: Annotated[UserModel, Depends(get_current_active_user)]
-) -> list[Link] | list:
+) -> Page[Link] | list:
     """
     Get list of all available link objects form database.
     * All date data are returned in UTC time
     """
-    return get_links(collection=db)
+    return paginate(get_links(collection=db))
 
 
 @router.get("/exists", response_model=None, status_code=status.HTTP_200_OK)
 async def check_link_exist(
-    url: str,
+    url: HttpUrl,
     db: Annotated[Collection, Depends(get_collection)],
     user: Annotated[UserModel, Depends(get_current_active_user)]
 ) -> dict:
@@ -49,10 +52,10 @@ async def check_link_exist(
     Return boolean value that according to the link existence.
     """
     exists = check_that_link_exists(url, collection=db)
-    if exists:
-        return {'exists': check_that_link_exists(url, collection=db)}
+    if not exists:
+        return {'detail': 'Link does not exists.'}
     raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
+        status_code=status.HTTP_400_BAD_REQUEST,
         detail="Link already exists in the database"
     )
 

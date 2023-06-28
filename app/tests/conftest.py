@@ -54,14 +54,43 @@ def create_test_token(test_user_client, test_user_database):
     """
     # Get token
     collection = test_user_database
-    data = DBUser(username='someone1', password='password')
+    data = DBUser(
+        username='someone1',
+        email='example@email.com',
+        password='password'
+    )
     user = create_user(data, collection)
     # Get token
     payload = {
-        'username': data.username,
+        'email': data.email,
         'password': 'password'
     }
-    response = test_user_client.post('/api/user/token', data=payload)
+    response = test_user_client.post('/api/user/token', json=payload)
+    token = response.json().get('access_token')
+    token_type = response.json().get('token_type')
+    return {'user': user, 'token': f'{token_type} {token}'}
+
+
+@pytest.fixture()
+def create_test_token_admin(test_user_client, test_user_database):
+    """
+    Helper function that will create token
+    """
+    # Get token
+    collection = test_user_database
+    data = DBUser(
+        username='someone1',
+        email='example@email.com',
+        password='password',
+        is_admin=True
+    )
+    user = create_user(data, collection)
+    # Get token
+    payload = {
+        'email': data.email,
+        'password': 'password'
+    }
+    response = test_user_client.post('/api/user/token', json=payload)
     token = response.json().get('access_token')
     token_type = response.json().get('token_type')
     return {'user': user, 'token': f'{token_type} {token}'}

@@ -9,8 +9,9 @@ def test_create_superuser(test_user_database):
 
     username = 'test-username'
     password = 'test-password'
+    email = 'example@email.com'
 
-    create_superuser(username, password, collection)
+    create_superuser(username, password, email, collection)
 
     obj = collection.find_one({'username': username})
     assert obj.get('username') == username

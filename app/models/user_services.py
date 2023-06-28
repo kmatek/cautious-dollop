@@ -50,25 +50,25 @@ def get_user(user_id: str, collection: Collection) -> UserModel:
     return user_serializer(user_obj)
 
 
-def get_user_with_password(username: str, collection: Collection) -> DBUser:
+def get_user_with_password(email: str, collection: Collection) -> DBUser:
     """
     Get user with hashed password from databse.
     """
     # Get user from database
-    user_obj = get_raw_user_data(collection, username=username)
+    user_obj = get_raw_user_data(collection, email=email)
 
     # Parse data into UserModel
     return dbuser_serializer(user_obj)
 
 
-def authenticate_user(collection: Collection, username: str, password: str) -> bool | DBUser:
+def authenticate_user(collection: Collection, email: str, password: str) -> bool | DBUser:
     """
     Aunthenticate user with given username and password.
     Return boolean or DBUser value.
     """
     # Get user
     try:
-        user = get_user_with_password(username, collection)
+        user = get_user_with_password(email, collection)
         # Verify password
         if not verify_password(password, user.password):
             return False

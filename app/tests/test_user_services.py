@@ -101,6 +101,7 @@ def test_get_user_with_password(test_user_database):
     # Add user to the database
     data = DBUser(
         username='user1',
+        email='example@email.com',
         password='password',
     )
     payload = data.dict()
@@ -108,9 +109,10 @@ def test_get_user_with_password(test_user_database):
 
     collection.insert_one(payload)
     # Get data
-    user_obj = get_user_with_password(data.username, collection)
+    user_obj = get_user_with_password(data.email, collection)
     assert user_obj.id
     assert user_obj.username == data.username
+    assert user_obj.email == data.email
     assert user_obj.password
     assert pbkdf2_sha256.verify(data.password, user_obj.password) is True
 
@@ -123,16 +125,18 @@ def test_authenicate_user_method(test_user_database):
     collection = test_user_database
     data = DBUser(
         username='user1',
+        email='example@email.com',
         password='password',
     )
     payload = data.dict()
     payload.update({'password': get_hashed_password(data.password)})
     collection.insert_one(payload)
 
-    obj = authenticate_user(collection, data.username, data.password)
+    obj = authenticate_user(collection, data.email, data.password)
 
     assert type(obj) == DBUser
     assert obj.username == data.username
+    assert obj.email == data.email
 
 
 def test_authenicate_user_method_with_wrong_username(test_user_database):

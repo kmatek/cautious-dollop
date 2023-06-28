@@ -1,4 +1,5 @@
 import os
+
 from pydantic import BaseSettings
 
 
@@ -8,6 +9,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = os.environ.get('ALGORITHM')
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 30)
     TOKEN_TYPE: str = 'Bearer'
+    ORIGINS: str = os.environ.get('ORIGINS')
+
+    @property
+    def get_origins(self) -> list[str]:
+        return self.ORIGINS.split(',')
 
 
 settings = Settings()
