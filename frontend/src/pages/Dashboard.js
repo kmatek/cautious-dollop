@@ -2,6 +2,7 @@ import React, {useContext, useState, useRef, useEffect} from 'react';
 import AuthContext from '../context/AuthContext';
 import moment from 'moment';
 import ChangePassModal from '../components/ChangePasswordModal';
+import CreateNewUserModal from '../components/CreateNewUserModal';
 
 
 const DashboardPage = () => {
@@ -155,11 +156,7 @@ const DashboardPage = () => {
                 {user ? <h1>Cześć {user.username}</h1> : null}
                 {user && user.is_admin? (
                     <div className='d-flex flex-column gap-3'>
-                        <button 
-                        className="btn btn-success mt-3 px-3 py-2 w-100"
-                        style={{maxWidth: 200}}>
-                            Doodaj użytkownika
-                        </button>
+                        <CreateNewUserModal/>
                         <ChangePassModal />
                     </div>
                 ) : (
@@ -245,20 +242,15 @@ const DashboardPage = () => {
                         </thead>
                         <tbody className='table-group-divider'>
                             {loadingLinks && links ? (
-                                links.items?.map(link => (
-                                    <tr key={link._id}>
+                                links.items?.map(link => (<tr key={link._id}>
                                         <td><a className='link-underline link-underline-opacity-0' href={link.url}>{link.url}</a></td>
                                         <td>{link.added_by}</td> <td>{convertToGMTPlus2(link.date_added)}</td>
                                     </tr>))
-                                ): (
-                                    <tr>
+                                ): (<tr>
                                         <td colSpan={3} className='text-center h3'>Pobieram dane...</td>
-                                    </tr>
-                                )
-                            }
+                                    </tr>)}
                         </tbody>
                     </table>
-
                     {loadingLinks && links.links ? (
                         <nav aria-label="Page navigation example">
                             <ul className="pagination justify-content-center">
