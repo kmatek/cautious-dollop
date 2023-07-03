@@ -62,7 +62,7 @@ def test_get_links(test_urls_database):
     """
     collection = test_urls_database
     # Add some links to the database
-    insert_data_dict = {_: Link(url=f'https://example{_}.com', added_by='test_user')  for _ in range(12)} # noqa
+    insert_data_dict = {_: Link(url=f'https://example{_}.com', added_by='test_user')  for _ in range(12, -1, -1)} # noqa reverse list
     for _, data in insert_data_dict.items():
         collection.insert_one(data.dict())
 

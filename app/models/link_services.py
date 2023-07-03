@@ -32,7 +32,10 @@ def get_links(collection: Collection) -> typing.List[Link]:
     """
     links = collection.find()
     if links:
-        return list(map(lambda x: link_serializer(x), links))
+        # Return reversed list of links
+        reversed_list = list(map(lambda x: link_serializer(x), links))
+        reversed_list.reverse()
+        return reversed_list
     return []
 
 
