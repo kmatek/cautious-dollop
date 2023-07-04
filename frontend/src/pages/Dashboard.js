@@ -60,6 +60,7 @@ const DashboardPage = () => {
             setCreate(false);
             setError(null);
             inputRef.current.value = '';
+            getLinks();
         }
     };
 
