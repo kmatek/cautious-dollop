@@ -17,8 +17,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Test
         run: |
-          docker-compose up -d
+          backend/docker-compose up -d
           sleep 5
-          docker-compose run --rm app sh -c "pytest"
+          backend/docker-compose run --rm app sh -c "pytest"
       - name: Formating
-        run: docker-compose run --rm app sh -c "flake8"
+        run: backend/docker-compose run --rm app sh -c "flake8"
