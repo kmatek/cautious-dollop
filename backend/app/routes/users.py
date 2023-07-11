@@ -17,7 +17,7 @@ from models.user_services import (
 from models.schemas import Token, DBUser, UserModel, PasswordUpdate, TokenIn
 
 router = APIRouter(
-    prefix='/api/user',
+    prefix='/user',
     tags=['User']
 )
 

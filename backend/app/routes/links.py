@@ -18,7 +18,7 @@ from db.database import link_collection
 from .users import get_current_active_user
 
 router = APIRouter(
-    prefix='/api/links',
+    prefix='/links',
     tags=['Links']
 )
 
