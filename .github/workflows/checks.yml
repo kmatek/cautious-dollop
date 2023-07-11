@@ -17,8 +17,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Test
         run: |
-          (cd ./backend && docker-compose up -d)
+          docker-compose up mongo backend -d
           sleep 5
-          (cd ./backend && docker-compose run --rm app sh -c "pytest")
+          docker-compose run --rm backend sh -c "pytest"
       - name: Formating
-        run: (cd ./backend && docker-compose run --rm app sh -c "flake8" )
+        run: docker-compose run --rm backend sh -c "flake8"

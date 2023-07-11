@@ -3,7 +3,7 @@ from fastapi import status
 from models.schemas import DBUser
 from models.user_services import create_user
 
-USER_URL = "/api/user"
+USER_URL = "/user"
 TOKEN_URL = USER_URL + "/token"
 USER_DETAIL_URL = USER_URL + "/me"
 USER_PASSWORD_UPDATE = USER_URL + "/update-password"

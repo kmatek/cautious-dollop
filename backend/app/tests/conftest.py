@@ -65,7 +65,7 @@ def create_test_token(test_user_client, test_user_database):
         'email': data.email,
         'password': 'password'
     }
-    response = test_user_client.post('/api/user/token', json=payload)
+    response = test_user_client.post('/user/token', json=payload)
     token = response.json().get('access_token')
     token_type = response.json().get('token_type')
     return {'user': user, 'token': f'{token_type} {token}'}
@@ -90,7 +90,7 @@ def create_test_token_admin(test_user_client, test_user_database):
         'email': data.email,
         'password': 'password'
     }
-    response = test_user_client.post('/api/user/token', json=payload)
+    response = test_user_client.post('/user/token', json=payload)
     token = response.json().get('access_token')
     token_type = response.json().get('token_type')
     return {'user': user, 'token': f'{token_type} {token}'}
