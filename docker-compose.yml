@@ -1,23 +1,31 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - 8000:8000
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --root-path /api --proxy-headers --host 0.0.0.0 --port 8000
     volumes:
-      - ./app:/app
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      - ./backend/app:/app
     environment:
       - DATABASE_URL=mongodb://root:example@mongo:27017/
       - SECRET_KEY=somesecretkey
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - ORIGINS=http://localhost:3000,https://localhost:3000
+      - ORIGINS=http://localhost:8080,https://localhost:8080,http://127.0.0.1:8080,https://127.0.0.1:8080
     depends_on:
       mongo:
         condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
 
   mongo:
     image: mongo
@@ -38,4 +46,6 @@ services:
       start_period: 40s
 
 volumes:
+  caddy-data:
+  caddy-config:
   dbdata6:

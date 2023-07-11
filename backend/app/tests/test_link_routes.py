@@ -1,7 +1,7 @@
 from fastapi import status
 
-LINKS_URL = "/api/links/"
-CHECK_EXISTS_URL = "/api/links/exists/"
+LINKS_URL = "/links/"
+CHECK_EXISTS_URL = "/links/exists/"
 
 
 def test_add_link(test_client, create_test_token):
