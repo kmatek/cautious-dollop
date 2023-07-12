@@ -156,7 +156,7 @@ const DashboardPage = () => {
             <nav className='d-flex flex-column pb-5 my-5'>
                 {user ? <h1>Cześć, {user.username}</h1> : null}
                 {user && user.is_admin? (
-                    <div className='d-flex flex-column gap-3'>
+                    <div className='d-flex flex-column gap-3 mt-3'>
                         <CreateNewUserModal/>
                         <ChangePassModal />
                     </div>
