@@ -154,9 +154,9 @@ const DashboardPage = () => {
     return (
         <div className="h-100 container">
             <nav className='d-flex flex-column pb-5 my-5'>
-                {user ? <h1>Cześć {user.username}</h1> : null}
+                {user ? <h1>Cześć, {user.username}</h1> : null}
                 {user && user.is_admin? (
-                    <div className='d-flex flex-column gap-3'>
+                    <div className='d-flex flex-column gap-3 mt-3'>
                         <CreateNewUserModal/>
                         <ChangePassModal />
                     </div>
@@ -244,7 +244,7 @@ const DashboardPage = () => {
                         <tbody className='table-group-divider'>
                             {loadingLinks && links ? (
                                 links.items?.map(link => (<tr key={link._id}>
-                                        <td><a className='link-underline link-underline-opacity-0' href={link.url}>{link.url}</a></td>
+                                        <td><a className='link-underline link-underline-opacity-0' href={link.url} target='_blank'>{link.url}</a></td>
                                         <td>{link.added_by}</td> <td>{convertToGMTPlus2(link.date_added)}</td>
                                     </tr>))
                                 ): (<tr>

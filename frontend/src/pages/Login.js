@@ -6,7 +6,7 @@ const LoginPage = () => {
 
     return (
         <form onSubmit={login} className="border border-2 rounded p-4 bg-secondary-subtle">
-            <h5 className="mb-5">Habibi</h5>
+            <h5 className="mb-5">zadzialke.pl - Panel wymian</h5>
             { error && <div className="alert alert-danger" role="alert">{error}</div>}
             <div className="mb-3">
                 <input type="email" name="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Email" defaultValue='' required/>
